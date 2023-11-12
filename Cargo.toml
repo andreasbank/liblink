@@ -1,0 +1,17 @@
+[package]
+name = "liblink"
+version = "0.1.0"
+authors = ["Andreas Bank <andreas.mikael.bank@gmail.com>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+[[bin]]
+name = "liblink"
+path = "server/main.rs"
+
+[[bin]]
+name = "link_client"
+path = "client/main.rs"
