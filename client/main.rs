@@ -2,13 +2,17 @@ use std::net::{TcpStream};
 use std::io::{Read, Write};
 use std::str::from_utf8;
 
+static MAGIC_BYTES: [u8; 4] = [ 0x0A, 0x0B, 0x0A, 0x0B ];
+
 fn main() {
-    match TcpStream::connect("localhost:3333") {
+    match TcpStream::connect("localhost:65432") {
         Ok(mut stream) => {
-            println!("Successfully connected to server in port 3333");
+            println!("Successfully connected to server in port 65432");
 
             let msg = b"Hello!";
 
+            stream.write(&MAGIC_BYTES).unwrap();
+            println!("Sent magic bytes");
             stream.write(msg).unwrap();
             println!("Sent Hello, awaiting reply...");
 

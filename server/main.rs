@@ -1,15 +1,50 @@
 use std::thread;
 use std::net::{TcpListener, TcpStream, Shutdown};
 use std::io::{Read, Write};
+use std::result::Result;
+
+static MAGIC_BYTES: [u8; 4] = [ 0x0A, 0x0B, 0x0A, 0x0B ];
+
+fn authenticate(data: &[u8]) -> Result<(), &'static str> {
+    if MAGIC_BYTES == data { return Ok(()); }
+
+    Err("Wrong magic bytes")
+}
 
 fn handle_accept(mut stream: TcpStream) {
+    let mut authenticated = false;
     let mut data = [0 as u8; 1024];
+
     loop {
         match stream.read(&mut data) {
-            Ok(size) => {
+
+            Ok(size) if size > 0 => {
+
+                /* Check for the magic bytes */
+                if !authenticated {
+                    match authenticate(&data[0..MAGIC_BYTES.len()]) {
+                        Ok(_) => {
+                            authenticated = true;
+                            println!("Authentication successful");
+                        }
+                        Err(errstr) => {
+                            println!("Failed to authenticate: {}", errstr);
+                            break;
+                        }
+                    }
+                }
+
                 /* echo the data */
-                stream.write(&data[0..size]).unwrap();
+                println!("Sending data back");
+                stream.write(&data[4..size]).unwrap();
             },
+
+            /* If we received 0 bytes, we're done */
+            Ok(_) => {
+                println!("Gracefully closing the connection with {}", stream.peer_addr().unwrap());
+                break;
+            },
+
             Err(_) => {
                 println!("An error occurred, terminating connection with {}", stream.peer_addr().unwrap());
                 stream.shutdown(Shutdown::Both).unwrap();
