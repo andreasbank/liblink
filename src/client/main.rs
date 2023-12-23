@@ -2,7 +2,7 @@ use std::net::{TcpStream};
 use std::io::{Read, Write};
 use std::str::from_utf8;
 
-static MAGIC_BYTES: [u8; 4] = [ 0x0A, 0x0B, 0x0A, 0x0B ];
+static MAGIC_BYTES: [u8; 4] = [ 0xAB, 0xBA, 0xAB, 0xBA ];
 
 fn main() {
     match TcpStream::connect("localhost:65432") {

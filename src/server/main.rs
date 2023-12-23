@@ -7,28 +7,16 @@ use debug_print::debug_println;
 use clap::{arg, command};
 use once_cell::sync::Lazy;
 
-use liblink::common::Verbosity;
-use liblink::conditional_print;
+use liblink::common::utils::encode_hex;
+use liblink::common::verbose_print::Verbosity;
+use liblink::verb0;
 
 static VERBOSITY: Lazy<Mutex<Verbosity>> = Lazy::new(|| Mutex::new(Verbosity::new()));
 
-static MAGIC_BYTES: [u8; 4] = [ 0x0A, 0x0B, 0x0A, 0x0B ];
-
-fn u8_to_hex(data: &[u8]) -> String {
-    let data_size = data.len();
-    let hex = String::with_capacity(data.len() * 2);
-
-    for i in 0..data_size {
-        // TODO: rewrite the following in Rust
-        //hex[i] = data[i];
-        //hex[i+1] = data[i] >> 8;
-    }
-
-    hex
-}
+static MAGIC_BYTES: [u8; 4] = [ 0xAB, 0xBA, 0xAB, 0xBA ];
 
 fn authenticate(data: &[u8]) -> Result<(), &'static str> {
-    debug_println!("Magic bytes received: {}", u8_to_hex(data));
+    debug_println!("Magic bytes received: {}", encode_hex(data));
     if MAGIC_BYTES == data { return Ok(()); }
 
     Err("Wrong magic bytes")
@@ -107,7 +95,7 @@ fn main() {
         None => String::from(""),
     };
 
-    conditional_print!("Hello {}", _listen_conf);
+    verb0!("Hello (conf: '{}')", _listen_conf);
 
     println!("Listening on port 65432");
     for stream in listener.incoming() {
