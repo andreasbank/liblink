@@ -14,34 +14,81 @@ static VERBOSITY: Mutex<Verbosity> = Mutex::new(Verbosity::new)));
     verb0!("This text will be printed because the global flag is set. {}", 42);
 */
 
+#[derive(PartialEq, PartialOrd)]
+pub enum VerbosityLevel {
+    Quiet,
+    Errors,
+    Informative,
+    Detailed,
+    Spam
+}
+
 // Define a struct to encapsulate the global state
 pub struct Verbosity{
-    flag: bool,
+    level: VerbosityLevel,
 }
 
 // Implement methods for the struct to safely modify the state
 impl Verbosity {
     pub fn new() -> Self {
-        Verbosity { flag: false }
+        Verbosity { level: VerbosityLevel::Quiet }
     }
 
-    pub fn set_flag(&mut self, value: bool) {
-        self.flag = value;
+    pub fn set_level(&mut self, value: VerbosityLevel) {
+        self.level = value;
     }
 
-    pub fn get_flag(&self) -> bool {
-        self.flag
+    pub fn is_atleast_level(&self, level: VerbosityLevel) -> bool {
+        if level <= self.level {
+            return true;
+        }
+        false
     }
 }
 
 // Define the macros to accept arguments like println!
 #[macro_export]
-macro_rules! verb0 {
+macro_rules! Error {
     ($($arg:tt)*) => {
         {
             // Check the global state
-            if VERBOSITY.lock().unwrap().get_flag() {
-                // Print the text with the same arguments as println!
+            if VERBOSITY.lock().unwrap().is_atleast_level(VerbosityLevel::Errors) {
+                println!($($arg)*);
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! Inform {
+    ($($arg:tt)*) => {
+        {
+            // Check the global state
+            if VERBOSITY.lock().unwrap().is_atleast_level(VerbosityLevel::Informative) {
+                println!($($arg)*);
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! Detail {
+    ($($arg:tt)*) => {
+        {
+            // Check the global state
+            if VERBOSITY.lock().unwrap().is_atleast_level(VerbosityLevel::Detailed) {
+                println!($($arg)*);
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! Spam {
+    ($($arg:tt)*) => {
+        {
+            // Check the global state
+            if VERBOSITY.lock().unwrap().is_atleast_level(VerbosityLevel::Spam) {
                 println!($($arg)*);
             }
         }

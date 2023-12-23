@@ -8,8 +8,8 @@ use clap::{arg, command};
 use once_cell::sync::Lazy;
 
 use liblink::common::utils::encode_hex;
-use liblink::common::verbose_print::Verbosity;
-use liblink::verb0;
+use liblink::common::verbose_print::{VerbosityLevel, Verbosity};
+use liblink::{Error, Inform, Detail, Spam};
 
 static VERBOSITY: Lazy<Mutex<Verbosity>> = Lazy::new(|| Mutex::new(Verbosity::new()));
 
@@ -70,8 +70,6 @@ fn main() {
     let port = 65432;
     let listener = TcpListener::bind((addr, port)).unwrap();
 
-    VERBOSITY.lock().unwrap().set_flag(true);
-
     let cmd_args = command!().args(&[
         arg!(-d --debug <lvl> "Enable debug at a certain level"),
         arg!(-v --verbose ... "Verbose mode. Can be specified up to 3 times"),
@@ -90,12 +88,14 @@ fn main() {
         None => 0,
     };
 
+    VERBOSITY.lock().unwrap().set_level(VerbosityLevel::Spam);
+
     let _listen_conf = match cmd_args.get_one::<String>("listen") {
         Some(conf) => String::from(conf),
         None => String::from(""),
     };
 
-    verb0!("Hello (conf: '{}')", _listen_conf);
+    Detail!("Parsed conf: '{}')", _listen_conf);
 
     println!("Listening on port 65432");
     for stream in listener.incoming() {
